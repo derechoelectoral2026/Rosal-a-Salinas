@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulacro INE – Vocalía RFE · v3 · Nivel Avanzado</title>
+<style>
+  /* ── PALETA: gris pizarra suave + índigo apagado ── */
+  :root {
+    --bg:        #1c2130;   /* fondo principal — gris azulado profundo */
+    --surface:   #252d3e;   /* tarjetas y paneles */
+    --surface2:  #2e3850;   /* superficies elevadas / hover */
+    --border:    #3a4560;   /* bordes sutiles */
+    --accent:    #6c8aed;   /* índigo medio — acento principal */
+    --accent-lo: #2a3660;   /* acento muy apagado para fondos */
+    --text:      #dde3f0;   /* texto principal — blanco cálido */
+    --text-mid:  #8fa0c0;   /* texto secundario */
+    --text-dim:  #5a6a88;   /* texto terciario / placeholders */
+    --correct:   #3d7a52;   /* verde oscuro suave */
+    --correct-bg:#1e3328;
+    --correct-tx:#7ec99a;
+    --wrong:     #7a3d3d;
+    --wrong-bg:  #2e1e1e;
+    --wrong-tx:  #d98080;
+    --pass-bg:   #1e3a2a;
+    --pass-tx:   #6dbe8a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1e2744, #2a3a6a);
+    color: white; padding: 16px 24px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    border-bottom: 1px solid #3a4a7a;
+  }
+  .header-logo { font-size: 1.7rem; }
+  .header h1 { font-size: 1.05rem; font-weight: 700; color: #e8edf8; }
+  .header p { font-size: 0.78rem; opacity: 0.7; margin-top: 2px; color: #a8b8d8; }
+  .header-right { margin-left: auto; text-align: right; }
+  .timer { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; color: #c8d8f0; }
+  .timer.warning { color: #e8c56a; }
+  .timer.danger  { color: #e07070; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.5} }
+
+  /* PROGRESS */
+  .progress-wrap { background: #2a3550; height: 4px; }
+  .progress-bar  { height: 4px; background: var(--accent); transition: width 0.4s; }
+
+  /* LAYOUT */
+  .main { max-width: 760px; margin: 0 auto; padding: 20px 16px 90px; }
+
+  /* START SCREEN */
+  .start-screen {
+    background: var(--surface); border-radius: 16px; padding: 36px;
+    text-align: center; border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-top: 28px;
+  }
+  .start-screen h2 { font-size: 1.3rem; color: var(--accent); margin-bottom: 10px; }
+  .level-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #2a3a6a, #4a5ea0);
+    color: #c8d8f8; border-radius: 20px; padding: 5px 18px;
+    font-size: 0.8rem; font-weight: 800; margin-bottom: 14px;
+    letter-spacing: 0.6px; border: 1px solid #5a70b8;
+  }
+  .info-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 20px 0; }
+  .info-card {
+    background: var(--surface2); border-radius: 12px; padding: 14px;
+    border: 1px solid var(--border);
+  }
+  .info-card .num { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+  .info-card .lbl { font-size: 0.76rem; color: var(--text-mid); margin-top: 2px; }
+
+  .warning-box {
+    background: #26211a; border: 1px solid #6a5030;
+    border-radius: 10px; padding: 12px 16px; margin: 14px 0;
+    font-size: 0.83rem; color: #c8a870; line-height: 1.5;
+  }
+
+  .topic-section { text-align: left; margin: 14px 0; }
+  .topic-section-title {
+    font-size: 0.74rem; font-weight: 800; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;
+    border-left: 3px solid var(--accent); padding-left: 8px;
+  }
+  .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .topic-pill {
+    background: var(--surface2); border-radius: 8px; padding: 7px 11px;
+    font-size: 0.77rem; color: var(--text-mid);
+    display: flex; justify-content: space-between; gap: 8px;
+    border: 1px solid var(--border);
+  }
+  .topic-pill .cnt { font-weight: 800; color: var(--accent); flex-shrink: 0; }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--surface); border-radius: 14px; padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3); margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 6px; }
+  .q-badge { font-size: 0.71rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+  .q-num { color: var(--text-dim); font-size: 0.8rem; }
+
+  .passage {
+    background: var(--accent-lo); border-left: 4px solid var(--accent);
+    padding: 14px; border-radius: 0 8px 8px 0; margin-bottom: 16px;
+    font-size: 0.88rem; line-height: 1.7; color: var(--text-mid);
+  }
+  .passage-label { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+
+  .question-text { font-size: 0.96rem; font-weight: 600; line-height: 1.55; margin-bottom: 18px; color: var(--text); }
+
+  .options { display: flex; flex-direction: column; gap: 9px; }
+  .option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px;
+    cursor: pointer; transition: all 0.18s; font-size: 0.88rem;
+    line-height: 1.45; color: var(--text); background: var(--bg);
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--surface2); }
+  .option.selected   { border-color: var(--accent); background: var(--accent-lo); }
+  .option.correct    { border-color: var(--correct); background: var(--correct-bg); color: var(--correct-tx); }
+  .option.incorrect  { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong-tx); }
+  .option.disabled   { cursor: default; }
+
+  .option-letter {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.76rem; flex-shrink: 0; color: var(--text-mid);
+  }
+  .option.selected  .option-letter { background: var(--accent); color: white; }
+  .option.correct   .option-letter { background: var(--correct); color: white; }
+  .option.incorrect .option-letter { background: var(--wrong);   color: white; }
+
+  .explanation {
+    margin-top: 14px; padding: 13px 15px; background: var(--accent-lo);
+    border-radius: 10px; border-left: 4px solid var(--accent);
+    font-size: 0.84rem; line-height: 1.7; display: none; color: var(--text-mid);
+  }
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--text); }
+
+  /* NAV BAR */
+  .nav-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 10px 16px; display: flex; justify-content: space-between;
+    align-items: center; gap: 10px; box-shadow: 0 -2px 12px rgba(0,0,0,0.4);
+  }
+  .nav-info { font-size: 0.8rem; color: var(--text-dim); }
+  .nav-info span { color: var(--accent); font-weight: 700; }
+
+  /* BUTTONS */
+  .btn { padding: 11px 22px; border-radius: 10px; border: none; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.18s; }
+  .btn-primary { background: linear-gradient(135deg, #3a5090, #5c78d0); color: white; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--text-mid); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); color: var(--text); }
+  .btn-lg { padding: 15px 36px; font-size: 0.98rem; border-radius: 12px; }
+
+  /* RESULTS */
+  .results-screen {
+    background: var(--surface); border-radius: 16px; padding: 36px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4); margin-top: 20px;
+    text-align: center; border: 1px solid var(--border);
+  }
+  .score-circle {
+    width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 2rem; font-weight: 900; color: white;
+  }
+  .score-sub { font-size: 0.7rem; font-weight: 500; opacity: 0.85; }
+  .score-good { background: linear-gradient(135deg,#2d6a40,#3d8a54); }
+  .score-mid  { background: linear-gradient(135deg,#7a4a10,#a06020); }
+  .score-low  { background: linear-gradient(135deg,#7a2020,#a03030); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 20px 0; }
+  .stat-card { background: var(--surface2); border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
+  .stat-card .n { font-size: 1.5rem; font-weight: 800; }
+  .stat-card .l { font-size: 0.73rem; color: var(--text-mid); margin-top: 2px; }
+  .stat-correct .n { color: var(--correct-tx); }
+  .stat-wrong   .n { color: var(--wrong-tx); }
+  .stat-skip    .n { color: var(--text-dim); }
+
+  .area-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.84rem; }
+  .area-name { flex: 1; color: var(--text-mid); }
+  .area-bar-wrap { flex: 2; background: var(--surface2); border-radius: 4px; height: 6px; }
+  .area-bar { height: 6px; border-radius: 4px; }
+  .area-pct { width: 34px; text-align: right; font-weight: 700; font-size: 0.8rem; color: var(--accent); }
+
+  .weak-banner {
+    background: linear-gradient(135deg,#1e2744,#2a3a6a); color: #c8d8f0;
+    border-radius: 12px; padding: 14px 18px; margin: 16px 0; text-align: left;
+    border: 1px solid #3a4a7a;
+  }
+  .weak-banner h4 { margin-bottom: 6px; }
+  .weak-banner p  { font-size: 0.82rem; opacity: 0.85; margin-bottom: 8px; }
+  .weak-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .weak-tag { background: rgba(108,138,237,0.2); border-radius: 6px; padding: 3px 9px; font-size: 0.76rem; font-weight: 700; color: #a0b8e8; }
+
+  .hidden { display: none !important; }
+  @media(max-width:500px){ .info-grid,.stats-grid{grid-template-columns:1fr 1fr} .topic-grid{grid-template-columns:1fr} }
+
+  /* MATCH TABLE */
+  .match-table { width:100%; border-collapse:collapse; margin-bottom:16px; font-size:0.86rem; }
+  .match-table th { background:var(--surface2); color:var(--accent); font-weight:800; padding:8px 10px; text-align:left; font-size:0.78rem; text-transform:uppercase; }
+  .match-table td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.45; color:var(--text); }
+  .match-table tr:last-child td { border-bottom:none; }
+  .match-table td:first-child { font-weight:800; color:var(--accent); white-space:nowrap; width:50px; }
+  .match-table td:nth-child(2) { color:var(--text-mid); border-right:2px dashed var(--border); padding-right:14px; }
+  .match-table td:nth-child(3) { font-weight:800; color:var(--accent); white-space:nowrap; width:30px; padding-left:14px; }
+  .match-table td:last-child { color:var(--text-mid); }
+  .match-table-wrap { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:14px; overflow-x:auto; }
+
+  /* BADGES */
+  .complexity-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    background:var(--surface2); color:#c8a870;
+    border:1px solid #6a5030; border-radius:6px;
+    font-size:0.67rem; font-weight:800; padding:2px 7px;
+    margin-left:6px; vertical-align:middle;
+  }
+  .adv-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    background:var(--surface2); color:#a0a8d0;
+    border:1px solid #3a4560; border-radius:6px;
+    font-size:0.67rem; font-weight:800; padding:2px 7px;
+    margin-left:6px; vertical-align:middle;
+  }
+  .q-badge-wrap { display:flex; align-items:center; flex-wrap:wrap; gap:4px; }
+
+  /* BIBLIO */
+  .biblio-section { max-width:760px; margin:0 auto; padding:10px 16px 60px; }
+  .biblio-toggle {
+    width:100%; background:linear-gradient(135deg,#1e2744,#2a3a6a); color:#c8d8f0;
+    border:none; border-radius:12px; padding:13px 20px; font-size:0.92rem;
+    font-weight:700; cursor:pointer; display:flex; align-items:center;
+    justify-content:space-between; border:1px solid #3a4a7a;
+  }
+  .biblio-toggle:hover { opacity:0.9; }
+  .biblio-toggle .arrow { transition:transform 0.3s; }
+  .biblio-toggle.open .arrow { transform:rotate(180deg); }
+  .biblio-box {
+    background:var(--surface); border-radius:0 0 12px 12px; padding:24px; display:none;
+    border:1px solid var(--border); border-top:none;
+  }
+  .biblio-box.show { display:block; }
+  .biblio-box h3 { font-size:0.8rem; font-weight:800; color:var(--accent); text-transform:uppercase; margin:18px 0 8px; border-bottom:2px solid var(--surface2); padding-bottom:4px; }
+  .biblio-box h3:first-child { margin-top:0; }
+  .biblio-list { list-style:none; padding:0; }
+  .biblio-list li { padding:6px 0 6px 14px; border-left:3px solid var(--border); margin-bottom:5px; font-size:0.8rem; line-height:1.55; color:var(--text-mid); }
+  .biblio-list li strong { color:var(--accent); }
+  .biblio-url { font-size:0.73rem; color:var(--text-dim); word-break:break-all; display:block; margin-top:2px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-logo">📐</div>
+  <div>
+    <h1>Simulacro INE – Vocalía RFE · <span style="font-size:.75em;opacity:.8">Versión III · Nivel Avanzado</span></h1>
+    <p>Análisis normativo · Casos prácticos · Dilemas institucionales</p>
+  </div>
+  <div class="header-right">
+    <div class="timer" id="timer">60:00</div>
+    <div style="font-size:0.67rem;opacity:0.6;margin-top:2px">tiempo restante</div>
+  </div>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+<div class="main">
+  <div class="start-screen" id="startScreen">
+    <div class="level-badge">▲ VERSIÓN III — NIVEL AVANZADO</div>
+    <h2>Vocalía del Registro Federal de Electores</h2>
+    <div class="warning-box">⚠️ <strong>Nivel avanzado:</strong> Casos prácticos complejos, análisis normativo multi-capa, dilemas de concurrencia de responsabilidades y escenarios de jornada con decisiones críticas. Se recomienda haber completado las Versiones I y II.</div>
+    <p style="background:var(--surface2);border-radius:10px;padding:10px;color:var(--accent);font-weight:600;margin-bottom:14px;border:1px solid var(--border)">Guía Oficial INE 2026 · <strong>40 preguntas · 🔀 Orden y opciones aleatorias</strong></p>
+    <div class="info-grid">
+      <div class="info-card"><div class="num">40</div><div class="lbl">Preguntas</div></div>
+      <div class="info-card"><div class="num">60</div><div class="lbl">Minutos</div></div>
+      <div class="info-card"><div class="num">🧠</div><div class="lbl">Alta complejidad</div></div>
+    </div>
+    <div class="topic-section">
+      <div class="topic-section-title">🏢 1. Estructura del INE — Análisis institucional (6)</div>
+      <div class="topic-grid">
+        <div class="topic-pill"><span>1.1 Jerarquía y concurrencia de órganos</span><span class="cnt">2</span></div>
+        <div class="topic-pill"><span>1.2 Funciones específicas del Vocal RFE</span><span class="cnt">2</span></div>
+        <div class="topic-pill"><span>1.3 Consejos: atribuciones y límites</span><span class="cnt">2</span></div>
+      </div>
+      <div class="topic-section-title">🗳️ 2. Proceso electoral — Casos y decisiones críticas (18)</div>
+      <div class="topic-grid">
+        <div class="topic-pill"><span>2.1 Preparación: conflictos normativos</span><span class="cnt">3</span></div>
+        <div class="topic-pill"><span>2.2 Voto anticipado: supuestos complejos</span><span class="cnt">3</span></div>
+        <div class="topic-pill"><span>2.3 Elecciones PJF: implicaciones</span><span class="cnt">2</span></div>
+        <div class="topic-pill"><span>2.4 Atribuciones: concurrencia y límites</span><span class="cnt">3</span></div>
+        <div class="topic-pill"><span>2.5 Jornada: dilemas y escenarios críticos</span><span class="cnt">7</span></div>
+      </div>
+      <div class="topic-section-title">⚖️ 3. Justicia electoral — Análisis multi-actor (8)</div>
+      <div class="topic-grid">
+        <div class="topic-pill"><span>3.1 Delitos: concurrencia y responsabilidades</span><span class="cnt">2</span></div>
+        <div class="topic-pill"><span>3.2 Impugnaciones: estrategia y plazos</span><span class="cnt">2</span></div>
+        <div class="topic-pill"><span>3.3 VPMRG: casos complejos</span><span class="cnt">4</span></div>
+      </div>
+      <div class="topic-section-title">📋 4. Padrón — Supuestos técnicos y operativos (8)</div>
+      <div class="topic-grid">
+        <div class="topic-pill"><span>4.1 RFE: casos técnicos avanzados</span><span class="cnt">4</span></div>
+        <div class="topic-pill"><span>4.2 Módulos: situaciones excepcionales</span><span class="cnt">1</span></div>
+        <div class="topic-pill"><span>4.3 Vigilancia: facultades y límites</span><span class="cnt">2</span></div>
+        <div class="topic-pill"><span>4.4 Cartografía: conflictos territoriales</span><span class="cnt">1</span></div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="startExam()">▶ Iniciar Versión III</button>
+  </div>
+  <div id="examScreen" class="hidden"></div>
+  <div id="resultsScreen" class="hidden"></div>
+</div>
+<div class="nav-bar hidden" id="navBar">
+  <div class="nav-info">Pregunta <span id="navCurrent">1</span> de <span id="navTotal">40</span></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-secondary" id="btnPrev" onclick="prevQ()">← Anterior</button>
+    <button class="btn btn-primary" id="btnNext" onclick="nextQ()">Siguiente →</button>
+  </div>
+</div>
+
+<script>
+const Q=[
+
+// 1.1
+{sa:"1.1",sal:"Direcciones ejecutivas",area:"Estructura del INE",cx:false,adv:true,
+ p:"El Vocal del RFE de una Junta Distrital recibe instrucciones contradictorias: su Junta Local le ordena priorizar la actualización masiva del padrón antes del corte de enero, pero la DERFE, mediante un oficio técnico, le indica suspender las capturas biométricas por una actualización del sistema.",
+ pt:"Conflicto de instrucciones institucionales",mt:null,
+ q:"¿Cuál es la cadena de mando correcta que debe seguir el Vocal del RFE distrital y qué principio institucional aplica?",
+ o:["Debe obedecer a la DERFE porque es la Dirección Ejecutiva que norma técnicamente su función; la Junta Local no tiene atribuciones sobre procesos técnicos de la DERFE.",
+    "Debe obedecer a la Junta Local Ejecutiva porque es su superior jerárquico inmediato; la DERFE solo emite lineamientos, no órdenes directas al nivel distrital.",
+    "Debe suspender todas las actividades y solicitar una resolución del Consejo General del INE para no incurrir en desobediencia institucional."],
+ c:0,ex:"La DERFE tiene atribuciones normativas y técnicas directas sobre la función registral en todo el país, incluyendo los vocales del RFE a nivel distrital. Ante un conflicto entre instrucciones de la Junta Local (superior jerárquico general) y la DERFE (rectora técnica del registro), prevalece la instrucción técnica de la DERFE en materias propias del RFE. El Vocal debe notificar a ambas instancias y documentar la situación."},
+
+{sa:"1.1",sal:"Direcciones ejecutivas",area:"Estructura del INE",cx:true,adv:true,
+ p:null,pt:null,
+ mt:`<div class="match-table-wrap"><table class="match-table"><thead><tr><th colspan="2">Dirección Ejecutiva del INE</th><th colspan="2">Atribución sustantiva</th></tr></thead><tbody>
+<tr><td>1.</td><td>DERFE</td><td>a)</td><td>Capacita funcionarios de casilla y promueve educación cívica</td></tr>
+<tr><td>2.</td><td>DEOyCP (Organización Electoral)</td><td>b)</td><td>Regula prerrogativas y acceso de partidos a radio/TV y financiamiento</td></tr>
+<tr><td>3.</td><td>DECEyEC</td><td>c)</td><td>Forma, depura y actualiza el padrón electoral y las listas nominales</td></tr>
+<tr><td>4.</td><td>DEPyPP</td><td>d)</td><td>Coordina logística electoral: casillas, materiales y capacitación de MRC</td></tr>
+</tbody></table></div>`,
+ q:"Relacione cada Dirección Ejecutiva del INE con su atribución sustantiva principal:",
+ o:["1c, 2d, 3a, 4b","1d, 2c, 3b, 4a","1a, 2b, 3d, 4c"],
+ c:0,ex:"DERFE (1c): padrón y listas nominales. Organización Electoral (2d): logística de casillas y capacitación de Mesas Directivas. Capacitación y Educación Cívica (3a): forma funcionarios y promueve cultura cívica. Prerrogativas y Partidos Políticos (4b): regula acceso a radio/TV y financiamiento."},
+
+// 1.2
+{sa:"1.2",sal:"Juntas locales y distritales ejecutivas",area:"Estructura del INE",cx:false,adv:true,
+ p:"Durante el proceso electoral, el Vocal del RFE distrital es notificado de que un ciudadano inscrito en su padrón falleció en otro estado, pero el Registro Civil de esa entidad aún no ha enviado el aviso de defunción al INE.",
+ pt:"Depuración de padrón en proceso electoral",mt:null,
+ q:"¿Qué debe hacer el Vocal del RFE distrital ante esta situación y qué restricción legal existe?",
+ o:["Puede dar de baja inmediatamente al ciudadano con el solo testimonio del familiar.",
+    "No puede actuar de oficio; debe esperar el aviso oficial del Registro Civil o RENAPO; sin esa notificación formal no procede la baja, aunque la muerte sea notoria.",
+    "Debe suspender al ciudadano cautelarmente del listado nominal mientras tramita la baja definitiva."],
+ c:1,ex:"La baja del padrón por fallecimiento requiere notificación oficial del Registro Civil o RENAPO; no procede por testimonio informal o notoriedad. Esto protege contra bajas fraudulentas. El Vocal debe documentar el caso y gestionar formalmente el aviso de defunción ante las autoridades del estado donde ocurrió el fallecimiento, para tramitar la baja en el siguiente periodo ordinario."},
+
+{sa:"1.2",sal:"Juntas locales y distritales ejecutivas",area:"Estructura del INE",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Cuál de las siguientes afirmaciones describe CORRECTAMENTE la relación entre el Vocal del RFE distrital y la Comisión de Vigilancia Distrital del RFE?",
+ o:["El Vocal del RFE es un integrante más de la Comisión de Vigilancia, sin facultad de presidirla ni tomar decisiones unilaterales sobre el padrón.",
+    "El Vocal del RFE preside la Comisión de Vigilancia Distrital, pero no puede actuar de oficio sobre el padrón sin escuchar previamente las observaciones de los representantes de los partidos.",
+    "El Vocal del RFE preside la Comisión y puede ejecutar correcciones de oficio sin informarlas a la Comisión, siempre que sean correcciones menores de datos."],
+ c:1,ex:"El Vocal del RFE preside la Comisión de Vigilancia Distrital. Sin embargo, la transparencia en el manejo del padrón exige que las acciones sobre el registro sean informadas y sometidas a la observación de los representantes de los partidos. El Vocal ejecuta las actualizaciones pero bajo el escrutinio de la Comisión, que puede formular observaciones vinculantes ante la DERFE."},
+
+// 1.3
+{sa:"1.3",sal:"Consejos locales y distritales",area:"Estructura del INE",cx:false,adv:true,
+ p:"Durante el cómputo distrital, el Consejo Distrital detecta que las actas de escrutinio de 12 casillas presentan tachaduras y correcciones sin firmar por los funcionarios. Dos consejeros proponen abrir los paquetes para cotejar, pero el Consejero Presidente argumenta que eso no es atribución del Consejo.",
+ pt:"Apertura de paquetes en cómputo distrital",mt:null,
+ q:"¿Cuándo puede el Consejo Distrital abrir los paquetes electorales y cuál es el supuesto que aplica aquí?",
+ o:["El Consejo Distrital nunca puede abrir paquetes; solo el TEPJF puede ordenarlo mediante sentencia.",
+    "El Consejo puede abrir los paquetes cuando los datos del acta sean ilegibles, incompletos o presenten tachaduras no salvadas; en este caso aplica por las correcciones sin firmar.",
+    "El Consejo puede abrir paquetes a solicitud de cualquier representante de partido, sin necesidad de causa específica."],
+ c:1,ex:"Conforme a la LGIPE, el Consejo Distrital puede abrir los paquetes durante el cómputo cuando existan errores aritméticos, datos ilegibles, incompletos o tachaduras no salvadas. Las correcciones sin firmar en las actas encuadran en este supuesto. El Consejero Presidente estaba equivocado: sí procede la apertura."},
+
+{sa:"1.3",sal:"Consejos locales y distritales",area:"Estructura del INE",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Cuál es la diferencia jurídica entre la 'declaración de validez' que emite el Consejo Distrital y la 'constancia de mayoría' que otorga al candidato ganador?",
+ o:["Son documentos idénticos; uno es la versión oficial y el otro la copia para el candidato.",
+    "La declaración de validez certifica que el proceso se ajustó a la ley; la constancia de mayoría acredita al candidato ganador. Ambas pueden impugnarse por separado.",
+    "La constancia de mayoría es definitiva e inatacable desde que la emite el Consejo; la declaración de validez sí puede impugnarse."],
+ c:1,ex:"Son documentos distintos con efectos jurídicos diferentes. La declaración de validez certifica la regularidad del proceso en el distrito. La constancia de mayoría acredita al candidato vencedor. Ambas pueden impugnarse: mediante JIN se impugnan los resultados; con JRC se puede impugnar la declaración de validez. Ninguna es definitiva hasta que venzan los plazos de impugnación."},
+
+// 2.1
+{sa:"2.1",sal:"Actividades de preparación de la elección",area:"Proceso electoral",cx:false,adv:true,
+ p:"Un partido denuncia ante el Consejo Distrital que el listado nominal de una sección contiene 300 ciudadanos con credenciales vencidas hace más de 2 años y que al menos 80 ya fallecieron.",
+ pt:"Impugnación del listado nominal",mt:null,
+ q:"¿Cuál es el mecanismo procesal correcto para impugnar la composición del listado nominal antes de la jornada?",
+ o:["El partido puede impugnar ante el TEPJF mediante un JDC colectivo en nombre de los ciudadanos afectados.",
+    "El partido presenta sus observaciones ante la Comisión de Vigilancia Distrital del RFE con pruebas documentales; si la DERFE no las atiende, puede escalar mediante queja ante el Consejo General del INE.",
+    "No existe mecanismo previo a la jornada para impugnar el listado nominal; solo puede hacerse después mediante JIN."],
+ c:1,ex:"La vía correcta es la Comisión de Vigilancia del RFE: el partido presenta observaciones con pruebas. La DERFE tiene obligación de responder y realizar verificaciones. Si las observaciones son ignoradas, el partido puede presentar queja ante el Consejo General del INE. La impugnación directa por JDC no aplica para listados nominales."},
+
+{sa:"2.1",sal:"Actividades de preparación de la elección",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Cuál es el orden cronológico correcto de las etapas del proceso electoral federal ordinario?",
+ o:["Preparación → Jornada electoral → Resultados y declaraciones de validez → Dictamen y declaración de validez de la elección presidencial.",
+    "Jornada electoral → Preparación → Resultados → Dictamen presidencial.",
+    "Dictamen presidencial → Preparación → Jornada → Resultados y declaraciones de validez."],
+ c:0,ex:"El proceso electoral federal se desarrolla en cuatro etapas: 1) Preparación (desde el inicio hasta la jornada), 2) Jornada electoral, 3) Resultados electorales y declaraciones de validez (cómputos distritales, constancias), 4) Dictamen y declaración de validez de la elección presidencial (Sala Superior del TEPJF). Este orden es fundamental para entender los plazos de impugnación."},
+
+{sa:"2.1",sal:"Actividades de preparación de la elección",area:"Proceso electoral",cx:true,adv:true,
+ p:null,pt:null,
+ mt:`<div class="match-table-wrap"><table class="match-table"><thead><tr><th colspan="2">Tipo de casilla</th><th colspan="2">Supuesto de instalación</th></tr></thead><tbody>
+<tr><td>1.</td><td>Casilla ordinaria</td><td>a)</td><td>Se instala cuando la sección tiene más de 750 electores; atiende la segunda parte de la lista</td></tr>
+<tr><td>2.</td><td>Casilla contigua</td><td>b)</td><td>Atiende electores de secciones con difícil acceso geográfico; límite de 300 votos</td></tr>
+<tr><td>3.</td><td>Casilla extraordinaria</td><td>c)</td><td>Se instala en cada sección electoral; atiende a los electores de esa sección</td></tr>
+<tr><td>4.</td><td>Casilla especial</td><td>d)</td><td>Se instala en puntos de alta concentración de ciudadanos en tránsito</td></tr>
+</tbody></table></div>`,
+ q:"Relacione cada tipo de casilla con su supuesto de instalación:",
+ o:["1c, 2a, 3b, 4d","1d, 2c, 3a, 4b","1a, 2d, 3c, 4b"],
+ c:0,ex:"Ordinaria (1c): en cada sección, atiende sus electores. Contigua (2a): cuando hay más de 750 electores, segunda mitad de la lista. Extraordinaria (3b): electores de secciones de difícil acceso. Especial (4d): puntos de alta afluencia en tránsito, límite 300 votos."},
+
+// 2.2
+{sa:"2.2",sal:"Modalidades de voto anticipado",area:"Proceso electoral",cx:false,adv:true,
+ p:"Un ciudadano de 65 años con discapacidad motriz solicita voto en domicilio. Al momento de la visita el día de la jornada, no está en casa. Su esposa indica que fue hospitalizado de emergencia esa mañana.",
+ pt:"Voto en domicilio — imprevisto el día de la jornada",mt:null,
+ q:"¿Cómo debe proceder el funcionario del INE?",
+ o:["Debe dejar la boleta con la esposa para que el ciudadano vote cuando regrese.",
+    "Debe levantar acta de no ejercicio del voto, registrar las boletas como sobrantes y reportar la incidencia; el ciudadano pierde su derecho en esa elección por esa modalidad.",
+    "Debe trasladarse al hospital, ya que el derecho al voto en domicilio sigue vigente en cualquier lugar donde esté el elector."],
+ c:1,ex:"El voto en domicilio solo puede ejercerse en el domicilio registrado. Si el ciudadano no está, el funcionario levanta acta de no ejercicio, registra las boletas como sobrantes y reporta al Consejo Distrital. No es posible dejar boletas con terceros ni trasladarse a otros lugares: rompería la cadena de custodia y el secreto del voto."},
+
+{sa:"2.2",sal:"Modalidades de voto anticipado",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"Un ciudadano mexicano en España quiere votar para Presidente y Senadores en 2027. ¿Cuál es el plazo máximo para inscribirse en la LNERE?",
+ o:["Puede inscribirse en cualquier momento, incluso el día de la jornada.",
+    "Debe inscribirse antes del 15 de diciembre del año previo a la elección; pasada esa fecha no puede votar aunque tenga credencial vigente.",
+    "Tiene hasta el 31 de enero del año de la elección, igual que el corte del padrón en México."],
+ c:1,ex:"La fecha límite para inscribirse en la LNERE es el 15 de diciembre del año previo al de la elección. Esto le da tiempo al INE para organizar el envío de materiales electorales al exterior. El ciudadano con credencial vigente pero sin inscripción no puede votar desde el extranjero; debe hacerlo en México si regresa."},
+
+{sa:"2.2",sal:"Modalidades de voto anticipado",area:"Proceso electoral",cx:false,adv:true,
+ p:"En una casilla especial en una central de autobuses, a las 15:30 ya se recibieron 295 votos. En la fila hay 12 ciudadanos más.",
+ pt:"Casilla especial — límite de votos",mt:null,
+ q:"¿Cuál debe ser la actuación del Presidente de la casilla especial?",
+ o:["Puede recibir los 12 votos porque el límite de 300 aplica por elección, contándose por separado para cada una.",
+    "Debe cerrar al llegar a 300 en total para todas las elecciones del paquete; los ciudadanos 301 en adelante serán rechazados.",
+    "Puede recibir los 5 votos para llegar a 300 exactos, pero rechaza a los 7 siguientes; los de la fila a las 18:00 h tienen derecho a votar."],
+ c:1,ex:"El límite de 300 votos aplica de forma global, no por tipo de elección. Al llegar a 300 totales, la casilla cierra para los ciudadanos en tránsito. Los 5 ciudadanos que completen los 300 votan; los 7 restantes son rechazados (independientemente de la hora). Esta regla es diferente a las casillas ordinarias, donde se puede exceder el número si hay ciudadanos en fila a las 18:00."},
+
+// 2.3
+{sa:"2.3",sal:"Proceso electoral del Poder Judicial de la Federación",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Qué sucede si un candidato al PJF, ya validado y registrado por el INE, es detenido por un proceso penal antes de la jornada? ¿Puede seguir en la boleta?",
+ o:["El INE cancela su registro si la detención implica condena firme; si es preventiva, el candidato permanece en la boleta.",
+    "El Comité de Evaluación revoca automáticamente su validación; la detención por cualquier motivo es causa de inelegibilidad.",
+    "El INE no puede cancelar el registro por una detención; requiere sentencia condenatoria firme que implique pérdida de derechos políticos; el candidato permanece en la boleta hasta ese supuesto."],
+ c:2,ex:"La pérdida de derechos político-electorales requiere sentencia condenatoria firme, conforme al Art. 38 CPEUM. Una detención preventiva no suspende automáticamente los derechos políticos. El INE solo puede cancelar el registro si existe sentencia firme que implique inhabilitación o prisión preventiva por delitos graves conforme a la ley."},
+
+{sa:"2.3",sal:"Proceso electoral del Poder Judicial de la Federación",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"Tras la reforma judicial de 2024, ¿qué órgano resuelve en última instancia los litigios electorales derivados de las elecciones del PJF, considerando que el TEPJF es parte del mismo PJF que se elige?",
+ o:["El propio TEPJF resuelve los litigios; conserva autonomía constitucional con mecanismos de recusación para magistrados en proceso de elección.",
+    "El Consejo General del INE actúa como última instancia por el conflicto de interés del TEPJF.",
+    "La SCJN conoce en última instancia por ser el órgano de mayor jerarquía ajeno a los conflictos electorales ordinarios."],
+ c:0,ex:"El TEPJF mantiene jurisdicción sobre los litigios electorales derivados de las elecciones judiciales. La reforma estableció mecanismos de imparcialidad: los magistrados en proceso de elección se recusan y no participan en esos asuntos. El TEPJF es el único tribunal especializado en materia electoral con rango constitucional en México."},
+
+// 2.4
+{sa:"2.4",sal:"Atribuciones especiales del INE",area:"Proceso electoral",cx:false,adv:true,
+ p:"Dos semanas antes de la jornada para elegir gobernador, el Consejo General del INE detecta que el OPLE no ha impreso el 30% de los listados nominales por problemas presupuestales y que el material no estará listo a tiempo.",
+ pt:"Atracción de elección local por el INE",mt:null,
+ q:"¿Puede el INE ejercer la atracción y cuáles son sus efectos inmediatos?",
+ o:["No puede; la atracción solo procede cuando el OPLE comete violaciones graves a principios constitucionales, no por problemas logísticos.",
+    "Sí puede; la atracción procede cuando el OPLE no puede garantizar la elección; al ejercerla, el INE asume íntegramente la organización y el OPLE queda subordinado para esa elección.",
+    "Solo puede ejercer la delegación inversa: el INE apoya logísticamente pero el OPLE conserva la dirección."],
+ c:1,ex:"La atracción procede cuando el OPLE se encuentra imposibilitado material o jurídicamente para organizar la elección. Un riesgo cierto de que no se cuente con material electoral es un supuesto válido. Al ejercer la atracción, el INE asume el control total: organización, logística, cómputos y declaraciones de validez, quedando el OPLE subordinado para ese proceso específico."},
+
+{sa:"2.4",sal:"Atribuciones especiales del INE",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Cuál es la diferencia entre la 'asunción' y la 'atracción' como mecanismos de intervención del INE sobre los OPLEs?",
+ o:["Son sinónimas; la diferencia es solo nominal según la entidad donde se aplican.",
+    "La atracción es temporal para una elección específica; la asunción es definitiva cuando el OPLE ha incumplido de forma sistemática, transfiriéndose permanentemente al INE esa función electoral.",
+    "La asunción aplica solo en procesos federales concurrentes; la atracción en elecciones locales no coincidentes."],
+ c:1,ex:"La atracción (Art. 121 LGIPE) es temporal: el INE asume una elección local específica, pero el OPLE continúa existiendo y retoma sus funciones después. La asunción es definitiva: el INE absorbe permanentemente la función electoral de la entidad, equivaliendo a la desaparición operativa del OPLE como organizador de elecciones locales."},
+
+{sa:"2.4",sal:"Atribuciones especiales del INE",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"El INE detecta que un partido contrata tiempos en radio y TV fuera de los asignados oficialmente. ¿Cuál es la atribución del INE y qué consecuencias puede tener?",
+ o:["El INE solo puede emitir advertencia pública; la sanción económica es exclusiva de la FISEL-FGR.",
+    "El INE puede ordenar la suspensión y el Consejo General imponer multas hasta con pérdida del registro mediante la UNICEF.",
+    "El INE puede ordenar la suspensión y, mediante el Procedimiento Especial Sancionador (PES), imponer multas proporcionales; en casos graves puede recomendar la pérdida del registro."],
+ c:2,ex:"El INE administra los tiempos oficiales y puede ordenar la suspensión de transmisiones ilegales mediante el PES, que es el procedimiento sumario para infracciones durante el proceso electoral. Las sanciones van desde multas hasta la pérdida del registro. No es la UNICEF quien resuelve el PES, sino la Comisión de Quejas y Denuncias del Consejo General."},
+
+// 2.5
+{sa:"2.5",sal:"Actividades del día de la jornada electoral",area:"Proceso electoral",cx:false,adv:true,
+ p:"A las 7:45, la Mesa Directiva está correctamente integrada. El representante de un partido entrega al Presidente un oficio del Consejo Distrital que, supuestamente, ordena cambiar la casilla a una manzana de distancia por 'riesgo estructural'.",
+ pt:"Cambio de ubicación el día de la jornada",mt:null,
+ q:"¿Cómo debe responder el Presidente de casilla?",
+ o:["Debe acatar el oficio porque proviene del Consejo Distrital, autoridad competente para ordenar cambios.",
+    "Debe instalar en el lugar aprobado originalmente; los cambios de casilla solo se ordenan antes de la jornada, no mediante documentos entregados por representantes de partidos durante ella.",
+    "Debe consultar al Vocal Ejecutivo; si este confirma verbalmente, procede la reubicación."],
+ c:1,ex:"Los cambios de ubicación de casillas son decisiones pre-jornada del Consejo Distrital. El día de la jornada, la casilla se instala en el lugar previamente aprobado. Documentos entregados por representantes de partidos el día de la jornada no tienen valor para modificar la logística; podrían ser falsificaciones para retrasar la apertura. El Presidente instala en el lugar original, documenta el incidente en el acta y notifica al Consejo por SIJE."},
+
+{sa:"2.5",sal:"Actividades del día de la jornada electoral",area:"Proceso electoral",cx:false,adv:true,
+ p:"Durante el escrutinio, el Presidente advierte que la suma de boletas utilizadas (válidos + nulos + impugnados) es 487, pero las firmas del listado nominal son 491. Diferencia: 4.",
+ pt:"Inconsistencia entre boletas y listado nominal",mt:null,
+ q:"¿Cómo se documenta esta discrepancia y qué efecto tiene sobre la validez?",
+ o:["Implica anulación automática del escrutinio de esa casilla; debe repetirse la votación.",
+    "El Presidente consigna la discrepancia exacta en el acta (491 firmas vs. 487 boletas); la casilla se computa con los votos contados. La discrepancia queda registrada y puede considerarse en una impugnación.",
+    "Debe buscar las 4 boletas faltantes para cuadrar el número antes de redactar el acta."],
+ c:1,ex:"Las discrepancias entre firmas y boletas son incidencias que se documentan con exactitud en el acta de escrutinio. No implican anulación automática. Se consignan los datos reales y la casilla se computa con los votos contados. Añadir boletas para 'cuadrar' sería manipulación del escrutinio. La discrepancia puede motivar impugnación post-electoral pero no invalida de plano el escrutinio."},
+
+{sa:"2.5",sal:"Actividades del día de la jornada electoral",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Qué debe hacer el Presidente si un funcionario de Mesa Directiva abandona la casilla a las 11:00 horas sin justificación?",
+ o:["La votación se suspende hasta que el Consejo Distrital designe un sustituto oficial.",
+    "El Presidente puede designar de inmediato a un ciudadano presente como sustituto, con el mismo procedimiento de integración ciudadana de la apertura; la votación continúa sin interrupción.",
+    "El Presidente redistribuye funciones entre los restantes; no puede designar sustitutos una vez iniciada la jornada."],
+ c:1,ex:"La sustitución de funcionarios que abandonan la casilla sigue el mismo procedimiento que la integración inicial: el Presidente designa a un ciudadano presente. La jornada no se suspende. Esto garantiza que la casilla continúe con la integración mínima requerida por la LGIPE."},
+
+{sa:"2.5",sal:"Actividades del día de la jornada electoral",area:"Proceso electoral",cx:false,adv:true,
+ p:"Al abrir una urna para el escrutinio, los funcionarios encuentran un celular encendido dentro. Representantes de dos partidos exigen anular inmediatamente el escrutinio.",
+ pt:"Objeto extraño dentro de urna",mt:null,
+ q:"¿Cuál es el procedimiento correcto?",
+ o:["Los representantes tienen razón; un objeto extraño es causal automática de nulidad de esa casilla.",
+    "El Presidente documenta el hallazgo en el acta de incidentes, retira el objeto, cuenta las boletas normalmente y continúa el escrutinio. El hallazgo se podrá valorar si hay impugnación, pero no nulifica automáticamente la casilla.",
+    "El Presidente detiene el escrutinio y traslada el paquete sin abrir al Consejo Distrital para que este decida."],
+ c:1,ex:"El hallazgo es una incidencia que se documenta meticulosamente, pero no es causal automática de nulidad conforme a la LGIPE. Las causales de nulidad están taxativamente establecidas. El Presidente retira el objeto, lo asegura como evidencia, continúa el escrutinio y registra todo en el acta. Será el TEPJF, si hay impugnación, quien valore si el hallazgo afectó la validez de los sufragios."},
+
+{sa:"2.5",sal:"Actividades del día de la jornada electoral",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Cuál es la diferencia entre el 'cómputo distrital' del Consejo Distrital y el 'escrutinio y cómputo' de los funcionarios de casilla?",
+ o:["Son el mismo procedimiento en diferentes niveles; ambos producen resultados con el mismo valor jurídico.",
+    "El escrutinio y cómputo de casilla es el conteo físico de votos el día de la jornada. El cómputo distrital, realizado el miércoles siguiente por el Consejo Distrital, suma los resultados de todas las casillas y puede implicar apertura de paquetes para rectificar errores.",
+    "El escrutinio de casilla es provisional y sin valor jurídico; el cómputo distrital es el único que produce resultados oficiales."],
+ c:1,ex:"Son procedimientos distintos y secuenciales: el escrutinio de casilla ocurre el día de la jornada y produce el acta de resultados de esa casilla. El cómputo distrital se realiza el miércoles siguiente: el Consejo Distrital suma las actas, puede abrir paquetes y emite la constancia de mayoría. Ambos tienen valor jurídico; el distrital prevalece sobre el de casilla cuando hay inconsistencias corregidas."},
+
+{sa:"2.5",sal:"Actividades del día de la jornada electoral",area:"Proceso electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Qué obligación tiene el Presidente de casilla respecto a los votos impugnados y cuándo queda resuelta la impugnación?",
+ o:["El Presidente puede resolver de inmediato si el voto es válido o nulo; los representantes solo pueden protestar pero no detener el conteo.",
+    "El Presidente separa los votos impugnados en sobre especial identificado dentro del paquete electoral; el Consejo Distrital (en el cómputo) o el TEPJF (si hay impugnación ulterior) determinan si esos votos se asignan a algún partido o se cuentan como nulos.",
+    "Los votos impugnados se destruyen en la propia casilla para evitar litigios; solo se anota el número total en el acta."],
+ c:1,ex:"Los votos impugnados deben preservarse íntegramente en sobre especial dentro del paquete electoral que se remite al Consejo Distrital. Es el Consejo quien los valora en el cómputo. Si la impugnación continúa vía JIN, será el TEPJF quien resuelva. Destruirlos sería un delito electoral grave."},
+
+// 3.1
+{sa:"3.1",sal:"Delitos en materia electoral",area:"Justicia electoral",cx:false,adv:true,
+ p:"Un Vocal del RFE descubre que un empleado del módulo, a cambio de dinero, realiza cambios de domicilio ficticios para que ciudadanos de otra sección aparezcan en una sección específica antes del corte del 31 de enero.",
+ pt:"Manipulación del padrón para efecto electoral",mt:null,
+ q:"¿Qué delitos pueden configurarse y qué debe hacer el Vocal del RFE?",
+ o:["Solo el empleado comete una falta administrativa; el Vocal no tiene obligación de denuncia.",
+    "Se configura el delito de alteración de registros electorales (LGMDE). Son responsables el empleado (autor material) y posiblemente quienes pagaron (partícipes). El Vocal debe denunciar ante la FISEL-FGR y reportar al INE para el procedimiento administrativo de responsabilidades.",
+    "El Vocal debe corregir los registros y amonestar internamente al empleado; solo si reincide acude a la FISEL."],
+ c:1,ex:"La manipulación de registros del padrón configura el delito de alteración dolosa de registros electorales (LGMDE). El Vocal tiene obligación inmediata de: 1) denunciar ante la FISEL-FGR, 2) reportar al INE para el procedimiento de responsabilidades, 3) revertir los cambios documentando evidencia, y 4) reforzar controles del módulo. La corrección interna sin denuncia podría convertir al Vocal en encubridor."},
+
+{sa:"3.1",sal:"Delitos en materia electoral",area:"Justicia electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Cuál es la diferencia entre el Procedimiento Especial Sancionador (PES) del INE y la denuncia penal ante la FISEL? ¿Pueden tramitarse simultáneamente?",
+ o:["El PES y la denuncia penal son excluyentes; solo puede usarse uno según la gravedad.",
+    "El PES es el procedimiento administrativo-electoral del INE (multas, suspensión de tiempos en medios); la FISEL tramita la vía penal. Son independientes, pueden tramitarse simultáneamente y sus sanciones se acumulan.",
+    "El PES siempre debe resolverse antes de que la FISEL pueda investigar; el INE actúa como instancia previa obligatoria."],
+ c:1,ex:"El PES es un mecanismo administrativo del INE para infracciones electorales no penales (propaganda ilegal, violación de tiempos de campaña), con sanciones administrativas. La FISEL investiga delitos tipificados en la LGMDE. Son vías paralelas e independientes; la misma conducta puede generar tanto sanción administrativa del INE como responsabilidad penal ante la FGR. No hay prelación entre ellas."},
+
+// 3.2
+{sa:"3.2",sal:"Medios de impugnación en materia electoral",area:"Justicia electoral",cx:false,adv:true,
+ p:"El cómputo distrital arroja 47 votos de diferencia. El partido perdedor quiere impugnar, pero su representante firmó el acta de cómputo sin protestar.",
+ pt:"Impugnación tras firma del acta de cómputo",mt:null,
+ q:"¿La firma sin protesta impide al partido interponer el JIN?",
+ o:["Sí, porque al firmar sin protesta el representante aceptó tácitamente los resultados; el JIN es improcedente.",
+    "No, porque el JIN es un derecho del partido político como tal, no del representante individual; la firma sin protesta no renuncia al derecho impugnativo del partido.",
+    "Depende: si el representante tenía mandato expreso del partido para firmar sin protesta, el JIN es improcedente."],
+ c:1,ex:"Conforme a la LGSMIME, el JIN es un derecho de los partidos políticos, no del representante individual. La firma del acta —incluso sin protesta— no extingue el derecho impugnativo del partido. El partido puede interponer el JIN dentro de los 4 días naturales siguientes a la conclusión del cómputo."},
+
+{sa:"3.2",sal:"Medios de impugnación en materia electoral",area:"Justicia electoral",cx:true,adv:true,
+ p:null,pt:null,
+ mt:`<div class="match-table-wrap"><table class="match-table"><thead><tr><th colspan="2">Medio de impugnación</th><th colspan="2">Autoridad que resuelve y efecto</th></tr></thead><tbody>
+<tr><td>1.</td><td>RIN</td><td>a)</td><td>TEPJF Sala Regional · Protege derechos político-electorales; puede restituir el derecho vulnerado</td></tr>
+<tr><td>2.</td><td>JIN</td><td>b)</td><td>TEPJF Sala Superior · Puede anular la elección presidencial o de senadores</td></tr>
+<tr><td>3.</td><td>JDC</td><td>c)</td><td>TEPJF Sala Regional (o Superior) · Puede anular votos, casillas o la elección distrital</td></tr>
+<tr><td>4.</td><td>RAP</td><td>d)</td><td>Consejo General del INE · Revisa actos del Secretario Ejecutivo o de las comisiones</td></tr>
+</tbody></table></div>`,
+ q:"Relacione cada medio de impugnación con la autoridad que resuelve y su posible efecto:",
+ o:["1d, 2c, 3a, 4b","1c, 2b, 3a, 4d","1b, 2a, 3d, 4c"],
+ c:1,ex:"RIN (1c): Sala Regional del TEPJF; puede anular votos, casillas o la elección distrital. JIN (2b): Sala Superior del TEPJF; puede anular la elección cuando afecta elecciones nacionales. JDC (3a): Sala Regional; restituye el derecho político-electoral vulnerado. RAP (4d): Consejo General del INE; revisa actos internos de la autoridad administrativa."},
+
+// 3.3
+{sa:"3.3",sal:"Violencia política contra las mujeres en razón de género",area:"Justicia electoral",cx:false,adv:true,
+ p:"Una regidora denuncia que el presidente municipal le asigna sistemáticamente tareas ajenas a su cargo (limpieza, mensajería), le niega acceso a información y la excluye de sesiones de cabildo con pretextos.",
+ pt:"VPMRG en el ejercicio del cargo",mt:null,
+ q:"¿Esta conducta constituye VPMRG y cuál es la vía idónea de denuncia?",
+ o:["No constituye VPMRG porque no hay violencia física; la asignación de tareas y exclusión son asuntos de gestión municipal interna.",
+    "Sí constituye VPMRG en su modalidad simbólica, institucional y de restricción del ejercicio del cargo. La regidora puede interponer queja electoral ante el INE o JDC ante el TEPJF para restitución de su derecho a ejercer el cargo.",
+    "Es VPMRG solo si la regidora pertenece a un partido diferente al del presidente municipal; si son del mismo partido, la vía es exclusivamente la disciplina interna."],
+ c:1,ex:"La asignación de tareas denigrantes, exclusión de sesiones y negación de información son formas de VPMRG simbólica, institucional y de restricción del cargo. No se requiere violencia física. La vía JDC ante el TEPJF permite la restitución inmediata del derecho a ejercer el cargo. El partido de pertenencia no es requisito para configurar VPMRG."},
+
+{sa:"3.3",sal:"Violencia política contra las mujeres en razón de género",area:"Justicia electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"El INE detecta que un partido no actualizó su protocolo de VPMRG conforme a las reformas de 2020 y que 8 quejas internas de mujeres candidatas fueron ignoradas. ¿Qué medidas puede adoptar el INE?",
+ o:["Solo puede emitir recomendación pública; las sanciones económicas a los partidos son atribución exclusiva del TEPJF.",
+    "El INE puede iniciar un Procedimiento Ordinario Sancionador (POS), imponer multa proporcional al financiamiento público y, en casos graves, suspender acceso parcial a financiamiento o a tiempos en medios.",
+    "El INE solo puede sancionar si hay queja formal de las candidatas afectadas; no puede actuar de oficio."],
+ c:1,ex:"El INE puede iniciar el POS de oficio cuando detecta infracciones a la LGPP o LGIPE, incluyendo la ausencia o incumplimiento del protocolo de VPMRG. Las sanciones van desde multas (hasta 10% del financiamiento anual) hasta la suspensión parcial de prerrogativas. El INE tiene facultades de actuación de oficio; no requiere queja previa de las afectadas."},
+
+{sa:"3.3",sal:"Violencia política contra las mujeres en razón de género",area:"Justicia electoral",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Qué diferencia existe entre 'paridad horizontal' y 'paridad vertical' en las candidaturas electorales en México?",
+ o:["La horizontal significa 50% de mujeres en candidaturas totales; la vertical es que los primeros lugares de las listas plurinominales sean mujeres.",
+    "La paridad vertical exige alternancia de géneros en las listas de representación proporcional (1H-1M a lo largo de toda la lista); la horizontal exige equilibrio 50/50 en el conjunto de candidaturas de mayoría relativa de una entidad.",
+    "Son términos sinónimos en la legislación electoral mexicana; ambos se refieren al principio 50/50."],
+ c:1,ex:"Paridad vertical: aplica a listas de RP, alterna géneros en cada posición para garantizar representación equitativa en los escaños obtenidos. Paridad horizontal: aplica a candidaturas de mayoría relativa en conjunto (si hay 10 distritos en un estado, 5 candidatos deben ser mujeres y 5 hombres). Ambas son obligatorias y garantizan que la paridad sea real y no solo formal."},
+
+{sa:"3.3",sal:"Violencia política contra las mujeres en razón de género",area:"Justicia electoral",cx:false,adv:true,
+ p:"Un partido postula a una mujer en un distrito históricamente perdedor. La candidata denuncia que fue colocada intencionalmente ahí mientras sus compañeros varones recibieron distritos competitivos.",
+ pt:"Paridad simulada — candidaturas perdedoras",mt:null,
+ q:"¿Esta práctica configura VPMRG o violación a la paridad? ¿Qué debe demostrar la candidata?",
+ o:["No; los partidos tienen libertad absoluta para asignar candidatos; la paridad solo exige el 50/50 numérico, no la calidad de los distritos.",
+    "Sí puede configurar paridad simulada (violación a la paridad sustantiva) y VPMRG. La candidata debe demostrar el patrón sistemático: que las mujeres del partido reciben consistentemente distritos perdedores mientras los hombres reciben los competitivos, y que esto responde al género y no a criterios objetivos.",
+    "Solo es impugnable si el partido le prometió explícitamente un distrito ganador y luego incumplió."],
+ c:1,ex:"La paridad sustantiva va más allá del número: exige que las candidaturas de mujeres tengan condiciones reales de competitividad equivalentes a las de los hombres. La asignación sistemática a distritos perdedores puede configurar violación a la paridad sustantiva y VPMRG. El TEPJF tiene jurisprudencia en este sentido. La prueba clave es el patrón histórico del partido, no una promesa individual."},
+
+// 4.1
+{sa:"4.1",sal:"Formación y actualización del Registro Federal de Electores",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:"Una ciudadana solicita corrección de su nombre: en su acta figura 'María de los Ángeles' pero en la credencial aparece 'Maria de los Angeles' (sin tilde ni mayúscula interna).",
+ pt:"Corrección de datos — validez de credencial",mt:null,
+ q:"¿Qué validez tiene la credencial con el nombre incorrecto para identificarse en casilla el día de la jornada?",
+ o:["La credencial es inválida si el nombre no coincide exactamente con el acta de nacimiento; debe corregirla antes de votar.",
+    "La credencial es válida para votar mientras esté vigente y la fotografía corresponda a la ciudadana; el funcionario de casilla no tiene atribuciones para rechazarla por variaciones tipográficas menores (acentos, mayúsculas).",
+    "La credencial solo es válida si la ciudadana presenta también su acta de nacimiento en la casilla."],
+ c:1,ex:"Las variaciones tipográficas menores (ausencia de tilde, diferencias en mayúsculas) no invalidan la credencial para el ejercicio del voto. El funcionario verifica que el nombre corresponda al listado nominal y que la fotografía sea de la ciudadana; no puede rechazar por variaciones ortográficas menores. La ciudadana debe tramitar la corrección para procesos futuros, pero puede votar con la credencial vigente."},
+
+{sa:"4.1",sal:"Formación y actualización del Registro Federal de Electores",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Qué ocurre jurídicamente con los datos biométricos almacenados en el RFE si el ciudadano solicita su baja voluntaria del padrón?",
+ o:["Los datos biométricos se eliminan inmediatamente del SIRE en cuanto se procesa la baja.",
+    "Los datos biométricos se conservan conforme a la ley de protección de datos; la baja del padrón cancela el estatus electoral del ciudadano pero no implica la destrucción automática de sus datos, que se conservan con fines de auditoría por el plazo que establece la normativa.",
+    "Los datos biométricos pasan a un archivo histórico público consultable por cualquier ciudadano."],
+ c:1,ex:"La baja del padrón cancela el estatus electoral (el ciudadano no figura en el listado nominal), pero los datos biométricos son parte del registro institucional del INE y se conservan conforme a las reglas de protección de datos personales y los plazos de conservación documental. No son de acceso público; solo se usan para auditorías internas. La destrucción inmediata podría facilitar fraudes de re-inscripción con identidad falsa."},
+
+{sa:"4.1",sal:"Formación y actualización del Registro Federal de Electores",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:"Un partido solicita a la Comisión de Vigilancia Distrital acceso a los datos biométricos completos (fotografías, huellas y firmas) del padrón de su distrito para 'verificar la autenticidad de los electores'.",
+ pt:"Acceso a datos biométricos del padrón",mt:null,
+ q:"¿Puede el INE proporcionar esa información al partido?",
+ o:["Sí, porque los partidos tienen derecho pleno al padrón electoral como instrumento de transparencia democrática.",
+    "No; los datos biométricos son datos personales sensibles protegidos por la Ley General de Protección de Datos Personales. El partido solo tiene derecho al listado nominal con nombre, domicilio y clave de elector; los biométricos no pueden entregarse a los partidos.",
+    "Sí, pero solo las fotografías; las huellas y firmas requieren orden judicial."],
+ c:1,ex:"Los datos biométricos son datos personales sensibles protegidos constitucionalmente y por la Ley General de Protección de Datos Personales en Posesión de Sujetos Obligados. Los partidos tienen derecho al listado nominal (nombre, domicilio, sección, clave de elector) para sus actividades proselitistas, pero los biométricos están expresamente excluidos. Entregarlos sería una violación grave de privacidad y podría constituir delito electoral."},
+
+{sa:"4.1",sal:"Formación y actualización del Registro Federal de Electores",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Cuál es la diferencia entre el 'Registro Federal de Electores' y la 'Credencial para Votar con Fotografía'?",
+ o:["Son el mismo instrumento; la credencial acredita la inscripción en el Registro.",
+    "El RFE es la base de datos interna del INE con todos los campos registrales y biométricos de cada ciudadano. La credencial para votar es el documento de identificación personal que contiene solo un subconjunto de esos datos (nombre, foto, domicilio, clave, CURP, vigencia); no contiene huellas ni la firma digitalizada.",
+    "La credencial es el RFE completo en formato portable; contiene todos los datos incluyendo los biométricos en un chip RFID."],
+ c:1,ex:"El RFE es la base de datos completa e interna de la DERFE: nombre, domicilio, CURP, fotografía, huellas dactilares, firma digitalizada, folio, clave de elector, sección, historial de trámites y datos geográficos. La credencial para votar contiene un subconjunto visible de esos datos más elementos de seguridad. Las huellas y la firma digitalizada permanecen solo en el RFE."},
+
+// 4.2
+{sa:"4.2",sal:"Operación de módulos para la atención ciudadana",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:"El sistema biométrico del módulo falla durante una semana por mantenimiento del SIRE. Hay ciudadanos que necesitan tramitar su credencial antes del 31 de enero.",
+ pt:"Falla del sistema biométrico en módulo",mt:null,
+ q:"¿Cuál es el protocolo correcto durante la falla?",
+ o:["El módulo debe cerrar hasta que el sistema sea restablecido; ningún trámite puede realizarse sin captura biométrica.",
+    "El módulo puede recibir la solicitud en formato físico (papel), capturar datos básicos y documentos, y programar cita para la captura biométrica una vez restablecido el sistema, garantizando que el trámite quede en proceso dentro del plazo legal.",
+    "El módulo puede emitir credencial provisional sin biométricos con validez limitada hasta que el sistema se restablezca."],
+ c:1,ex:"El protocolo ante fallas del sistema establece que el módulo no cesa su atención. Los operadores reciben documentación, registran la solicitud con los datos disponibles y programan cita para completar la captura biométrica. Lo importante es que el inicio del trámite quede registrado dentro del plazo del 31 de enero. No existen credenciales provisionales sin biométricos; la emisión requiere captura completa."},
+
+// 4.3
+{sa:"4.3",sal:"Comisiones de vigilancia locales y distritales",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:"En la Comisión de Vigilancia Distrital, un partido solicita suspender la depuración de fallecidos porque, según sus datos, el 15% de las bajas corresponden a ciudadanos que en realidad están vivos. El Vocal del RFE argumenta que las bajas se basan en avisos del Registro Civil.",
+ pt:"Conflicto entre depuración y observaciones de partido",mt:null,
+ q:"¿Cómo debe resolver el Vocal del RFE esta controversia?",
+ o:["El Vocal debe suspender todas las bajas hasta que el partido presente prueba individual de cada ciudadano supuestamente vivo.",
+    "El Vocal continúa con las bajas respaldadas en avisos oficiales, pero ordena verificación de campo en la muestra que señale el partido, informa los resultados a la Comisión y, si se confirman errores, reincorpora a los ciudadanos con documentación de respaldo.",
+    "El partido puede vetar unilateralmente las bajas con solo manifestar oposición en la sesión."],
+ c:1,ex:"Las bajas respaldadas en avisos oficiales tienen validez legal. Sin embargo, la observación del partido activa el mecanismo de verificación: el INE realiza verificación de campo en la muestra señalada. Si se confirman errores, el INE los reincorpora con documentación de respaldo. La Comisión no puede vetar depuraciones apoyadas en documentación oficial, pero sí puede exigir y obtener la verificación."},
+
+{sa:"4.3",sal:"Comisiones de vigilancia locales y distritales",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:null,pt:null,mt:null,
+ q:"¿Qué ocurre si un partido no designa representante ante la Comisión de Vigilancia Distrital del RFE durante un periodo ordinario?",
+ o:["La Comisión no puede sesionar legalmente si algún partido con registro no tiene representante.",
+    "La Comisión sesiona con los representantes presentes; la ausencia no invalida las sesiones ni los acuerdos, pero el partido pierde su derecho a formular observaciones sobre los movimientos del padrón de ese periodo.",
+    "El INE designa de oficio un representante provisional del partido ausente."],
+ c:1,ex:"Las Comisiones de Vigilancia sesionan con los partidos que envíen representantes. La ausencia de un partido no paraliza los trabajos; los acuerdos son válidos. Sin embargo, el partido ausente no podrá formular observaciones sobre los movimientos del padrón de ese periodo. El INE no puede designar representantes de partidos; esa es una decisión interna de cada organización política."},
+
+// 4.4
+{sa:"4.4",sal:"Cartografía electoral",area:"Padrón Electoral y lista nominal",cx:false,adv:true,
+ p:"Tras el Censo del INEGI, el INE inicia la redistritación federal. Una sección del Distrito 05 tiene actualmente 1,800 electores, lo que excede el límite máximo permitido.",
+ pt:"Redistritación y cartografía electoral",mt:null,
+ q:"¿Qué implica que una sección supere los 1,500 electores y qué consecuencia tiene para la asignación de casillas?",
+ o:["Una sección con más de 1,500 electores es inválida legalmente; todos sus electores deben reasignarse a secciones vecinas antes de la siguiente elección.",
+    "Una sección con más de 1,500 electores requiere instalación de casilla contigua para los electores excedentes (segunda mitad de la lista nominal); esto es exactamente el supuesto que activa la casilla contigua.",
+    "El INE puede ignorar el exceso si es inferior al 20% del límite; solo actúa cuando supera los 2,000 electores."],
+ c:1,ex:"El límite de 1,500 electores por sección activa la casilla contigua: cuando una sección supera ese número, se divide el listado nominal en dos partes y se instala una segunda casilla para la segunda parte. La sección no desaparece ni se reasignan sus electores; se duplican las casillas. La redistritación puede eventualmente dividir la sección, pero eso es un proceso de largo plazo ligado al Censo."}
+
+];
+
+function shuffleArray(arr) {
+  const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a;
+}
+function shuffleOptions(q) {
+  const n=q.o.length; const idx=Array.from({length:n},(_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+  return {...q,o:idx.map(i=>q.o[i]),c:idx.indexOf(q.c)};
+}
+const SUBS=["1.1","1.2","1.3","2.1","2.2","2.3","2.4","2.5","3.1","3.2","3.3","4.1","4.2","4.3","4.4"];
+const shuffledQ=SUBS.flatMap(sub=>shuffleArray(Q.filter(q=>q.sa===sub)).map(q=>shuffleOptions(q)));
+Q.length=0; shuffledQ.forEach(q=>Q.push(q));
+
+const TIME_LIMIT=60*60;
+let answers,revealed,current,timerInterval,secondsLeft;
+
+// Paleta de badges por subárea — tonos apagados y cohesivos
+const SS={
+  "1.1":{bg:"#232c42",color:"#8da0d0",icon:"🏢"},
+  "1.2":{bg:"#232c42",color:"#7890c0",icon:"🏗️"},
+  "1.3":{bg:"#232c42",color:"#6880b0",icon:"🏛️"},
+  "2.1":{bg:"#1e2c40",color:"#7aaad0",icon:"📋"},
+  "2.2":{bg:"#1e2e28",color:"#6ab090",icon:"📮"},
+  "2.3":{bg:"#2e2030",color:"#a888c0",icon:"⚖️"},
+  "2.4":{bg:"#2e2818",color:"#c0a060",icon:"⭐"},
+  "2.5":{bg:"#26203a",color:"#9080c0",icon:"🗳️"},
+  "3.1":{bg:"#2e1e1e",color:"#c07070",icon:"🚫"},
+  "3.2":{bg:"#2a2414",color:"#c0a040",icon:"📜"},
+  "3.3":{bg:"#2c1e28",color:"#c080a0",icon:"♀️"},
+  "4.1":{bg:"#182828",color:"#60b0b0",icon:"📂"},
+  "4.2":{bg:"#182818",color:"#70a870",icon:"🪪"},
+  "4.3":{bg:"#1e2814",color:"#90a860",icon:"👥"},
+  "4.4":{bg:"#22203a",color:"#8878b8",icon:"🗺️"}
+};
+
+function startExam(){
+  answers=new Array(Q.length).fill(null); revealed=new Array(Q.length).fill(false); current=0;
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('examScreen').classList.remove('hidden');
+  document.getElementById('navBar').classList.remove('hidden');
+  document.getElementById('navTotal').textContent=Q.length;
+  renderQuestion(0); startTimer();
+}
+function startTimer(){
+  secondsLeft=TIME_LIMIT;
+  timerInterval=setInterval(()=>{
+    secondsLeft--;
+    const m=Math.floor(secondsLeft/60),s=secondsLeft%60;
+    const el=document.getElementById('timer');
+    el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    el.className='timer'+(secondsLeft<=300?' danger':secondsLeft<=600?' warning':'');
+    document.getElementById('progressBar').style.width=((TIME_LIMIT-secondsLeft)/TIME_LIMIT*100)+'%';
+    if(secondsLeft<=0){clearInterval(timerInterval);showResults();}
+  },1000);
+}
+function renderQuestion(idx){
+  current=idx; const q=Q[idx],sc=SS[q.sa]||{bg:"#232c42",color:"#8da0d0",icon:"📌"};
+  const isR=revealed[idx],sel=answers[idx];
+  let ph=''; if(q.p) ph=`<div class="passage"><div class="passage-label">📄 ${q.pt||'Caso práctico'}</div>${q.p}</div>`;
+  let mth=''; if(q.mt) mth=q.mt;
+  const cxBadge=q.cx?`<span class="complexity-badge">🧩 Relaciona columnas</span>`:'';
+  const advBadge=q.adv?`<span class="adv-badge">▲ Avanzado</span>`:'';
+  const L=['A','B','C','D'];
+  const opts=q.o.map((o,i)=>{
+    let cls='option';
+    if(isR){cls+=' disabled';if(i===q.c)cls+=' correct';else if(i===sel&&i!==q.c)cls+=' incorrect';}
+    else if(i===sel)cls+=' selected';
+    return `<div class="${cls}" onclick="selOpt(${idx},${i})"><div class="option-letter">${L[i]}</div><div>${o}</div></div>`;
+  }).join('');
+  const ri=isR?(sel===q.c?'✅ Correcto':sel===null?'⏭️ Sin responder':'❌ Incorrecto'):'';
+  document.getElementById('examScreen').innerHTML=`
+    <div class="question-card">
+      <div class="q-meta">
+        <div class="q-badge-wrap"><span class="q-badge" style="background:${sc.bg};color:${sc.color}">${sc.icon} ${q.sal}</span>${cxBadge}${advBadge}</div>
+        <span class="q-num">${idx+1}/${Q.length}</span>
+      </div>
+      ${ph}${mth}
+      <div class="question-text">${q.q}</div>
+      <div class="options">${opts}</div>
+      ${isR?`<div class="explanation show"><strong>${ri}</strong><br><br>${q.ex}</div>`:''}
+    </div>`;
+  document.getElementById('navCurrent').textContent=idx+1;
+  document.getElementById('btnPrev').disabled=idx===0;
+  document.getElementById('btnNext').textContent=idx===Q.length-1?'🏁 Ver resultados':'Siguiente →';
+}
+function selOpt(idx,i){if(revealed[idx])return;answers[idx]=i;revealed[idx]=true;renderQuestion(idx);}
+function prevQ(){if(current>0)renderQuestion(current-1);}
+function nextQ(){if(current<Q.length-1)renderQuestion(current+1);else showResults();}
+function showResults(){
+  clearInterval(timerInterval);
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('navBar').classList.add('hidden');
+  let correct=0,wrong=0,skipped=0;
+  const byArea={};
+  Q.forEach((q,i)=>{
+    if(!byArea[q.area])byArea[q.area]={c:0,t:0};
+    byArea[q.area].t++;
+    if(answers[i]===null)skipped++;
+    else if(answers[i]===q.c){correct++;byArea[q.area].c++;}
+    else wrong++;
+  });
+  const total=Q.length,answered=total-skipped,pct=Math.round(correct/total*100);
+  const cc=pct>=70?'score-good':pct>=50?'score-mid':'score-low';
+  const msg=pct>=70?'¡Nivel avanzado dominado! 🏆':pct>=50?'Sólido conocimiento. ¡Refina los detalles! 💪':'Continúa profundizando. ¡El reto vale la pena!';
+  const areaColors={"Estructura del INE":"#4a6aaa","Proceso electoral":"#7060a0","Justicia electoral":"#a05050","Padrón Electoral y lista nominal":"#408080"};
+  const rows=Object.entries(byArea).map(([a,v])=>{
+    const p=Math.round(v.c/v.t*100),col=areaColors[a]||"#4a6aaa";
+    return `<div class="area-row"><div class="area-name">${a}</div><div class="area-bar-wrap"><div class="area-bar" style="width:${p}%;background:${col}"></div></div><div class="area-pct">${p}%</div></div>`;
+  }).join('');
+  const weak=Object.entries(byArea).filter(([,v])=>v.c/v.t<0.6).map(([a])=>a);
+  const wb=weak.length
+    ?`<div class="weak-banner"><h4>🎯 Profundiza en estas áreas:</h4><p>Menos del 60% — revisa los casos prácticos y la normativa.</p><div class="weak-tags">${weak.map(t=>`<span class="weak-tag">📌 ${t}</span>`).join('')}</div></div>`
+    :`<div style="background:var(--pass-bg);border-radius:10px;padding:14px;margin:14px 0;color:var(--pass-tx);font-weight:600;border:1px solid #3a6a4a">🏆 ¡Dominas todas las áreas del nivel avanzado!</div>`;
+  const tu=TIME_LIMIT-secondsLeft,tm=Math.floor(tu/60),ts=tu%60;
+  document.getElementById('resultsScreen').innerHTML=`
+    <div class="results-screen">
+      <div style="background:var(--surface2);border-radius:10px;padding:9px 14px;margin-bottom:18px;font-size:0.8rem;color:var(--accent);font-weight:600;border:1px solid var(--border)">▲ VERSIÓN III AVANZADO — VOCALÍA RFE · ${new Date().toLocaleDateString('es-MX')}</div>
+      <div class="score-circle ${cc}">${pct}%<div class="score-sub">${correct}/${total}</div></div>
+      <h2 style="margin-bottom:8px;color:var(--text)">${msg}</h2>
+      <p style="margin-bottom:20px;color:var(--text-mid)">Tiempo: ${tm}m ${ts}s · Respondidas: ${answered}/${total}</p>
+      <div class="stats-grid">
+        <div class="stat-card stat-correct"><div class="n">${correct}</div><div class="l">✅ Correctas</div></div>
+        <div class="stat-card stat-wrong"><div class="n">${wrong}</div><div class="l">❌ Incorrectas</div></div>
+        <div class="stat-card stat-skip"><div class="n">${skipped}</div><div class="l">⏭️ Saltadas</div></div>
+      </div>
+      ${wb}
+      <div style="text-align:left;margin-bottom:24px"><h3 style="font-size:0.88rem;font-weight:700;color:var(--text-mid);margin-bottom:10px">Desempeño por área</h3>${rows}</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" onclick="reviewExam()">Revisar con explicaciones</button>
+        <button class="btn btn-secondary btn-lg" onclick="location.reload()">🔀 Nuevo intento</button>
+      </div>
+    </div>`;
+  document.getElementById('resultsScreen').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+function reviewExam(){
+  document.getElementById('resultsScreen').classList.add('hidden');
+  document.getElementById('examScreen').classList.remove('hidden');
+  document.getElementById('navBar').classList.remove('hidden');
+  revealed=revealed.map(()=>true); renderQuestion(0); window.scrollTo(0,0);
+}
+</script>
+
+<div class="biblio-section">
+  <button class="biblio-toggle" id="biblioToggle" onclick="toggleBiblio()">📚 Bibliografía y fuentes <span class="arrow">▼</span></button>
+  <div class="biblio-box" id="biblioBox">
+    <h3>📖 Normativa avanzada</h3>
+    <ul class="biblio-list">
+      <li><strong>CPEUM.</strong> Arts. 35, 38, 41, 99, 116 y 122.</li>
+      <li><strong>LGIPE.</strong> Arts. 26, 30, 32, 86-90, 121, 166-177, 217, 218, 230, 291-295.</li>
+      <li><strong>LGSMIME.</strong> Arts. 8, 49, 52-54 (JIN, JDC, RIN).</li>
+      <li><strong>LGMDE.</strong> Arts. 7 y 11 (delitos de funcionarios).</li>
+      <li><strong>LGPP.</strong> Arts. 25, 37 (protocolos VPMRG).</li>
+      <li><strong>Ley General de Protección de Datos Personales en Posesión de Sujetos Obligados.</strong></li>
+    </ul>
+    <h3>🏛️ Documentos INE y jurisprudencia</h3>
+    <ul class="biblio-list">
+      <li><strong>INE (2026).</strong> Guía — Vocalía RFE local y distrital. <span class="biblio-url">https://ine.mx/wp-content/uploads/2026/04/Guia-Vocalia-del-Registro-Federal-de-Electores-local-y-distrital.pdf</span></li>
+      <li><strong>TEPJF.</strong> Jurisprudencia sobre paridad sustantiva, VPMRG y medios de impugnación.</li>
+      <li><strong>INE (2025).</strong> Instrucciones de trabajo — Modelo de Atención Ciudadana DERFE.</li>
+    </ul>
+    <p style="font-size:0.72rem;color:var(--text-dim);margin-top:16px;text-align:right">Simulacro INE – Vocalía RFE · Versión III · 40 preguntas · Nivel Avanzado</p>
+  </div>
+</div>
+<script>function toggleBiblio(){document.getElementById('biblioToggle').classList.toggle('open');document.getElementById('biblioBox').classList.toggle('show');}</script>
+</body>
+</html>
